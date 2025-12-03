@@ -6,6 +6,6 @@ export default defineConfig(({ command }) => {
   const isProd = command === 'build';
   return {
     plugins: [react()],
-    base: isProd ? "https://JosueUAB.github.io/Credenciales_SR5/" : "/",
+    base: isProd ? "/Credenciales_SR5/" : "/",
   };
 })

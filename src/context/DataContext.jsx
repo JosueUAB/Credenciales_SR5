@@ -21,38 +21,49 @@ export const DataProvider = ({ children }) => {
         }
       }
 
-      // If local data is empty, or if we want to ensure we have the latest static data
-      // Strategy: If local data is empty, definitely load static.
-      // If local data exists, we currently keep it (user might have added more).
-      // But for the "Public Verifier" on a fresh browser, localData is empty.
-      
       if (localData.length > 0) {
         setEmployees(localData);
         setLoading(false);
       } else {
         // Try loading from static file
-        try {
-          // Use import.meta.env.BASE_URL to ensure correct path on GitHub Pages
-          // In DEV, force root path to avoid issues if BASE_URL is set differently
-          const baseUrl = import.meta.env.DEV ? '/' : (import.meta.env.BASE_URL || '/');
-          const dataUrl = `${baseUrl}data.json`.replace('//', '/');
-          
-          const response = await fetch(dataUrl);
-          if (response.ok) {
-            const staticData = await response.json();
-            if (Array.isArray(staticData) && staticData.length > 0) {
-              setEmployees(staticData);
-              // Optionally save this to local storage so it persists for this user
-              // localStorage.setItem('qr_app_data', JSON.stringify(staticData));
+        // Strategy: Try relative path first (./data.json). This works well with HashRouter on GH Pages.
+        // If that fails, try constructing the full path with BASE_URL.
+        
+        const tryFetch = async (url) => {
+          try {
+            console.log(`Attempting to fetch data from: ${url}`);
+            const response = await fetch(url);
+            if (response.ok) {
+              const staticData = await response.json();
+              if (Array.isArray(staticData) && staticData.length > 0) {
+                setEmployees(staticData);
+                toast.success('Datos cargados correctamente');
+                return true;
+              }
             }
-          } else {
-            console.log('Static data not found or empty');
+          } catch (e) {
+            console.warn(`Failed to fetch from ${url}`, e);
           }
-        } catch (error) {
-          console.log('Error loading static data:', error);
-        } finally {
+          return false;
+        };
+
+        const attemptLoad = async () => {
+          // Attempt 1: Relative path
+          if (await tryFetch('./data.json')) return;
+
+          // Attempt 2: Explicit Base URL path
+          const baseUrl = import.meta.env.BASE_URL;
+          const dataUrl = `${baseUrl}data.json`.replace('//', '/');
+          if (await tryFetch(dataUrl)) return;
+
+          // Attempt 3: Absolute root path (last resort)
+          if (await tryFetch('/data.json')) return;
+
+          toast.error('No se pudieron cargar los datos');
           setLoading(false);
-        }
+        };
+
+        attemptLoad();
       }
     };
     loadData();
