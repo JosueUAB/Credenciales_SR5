@@ -33,8 +33,9 @@ export const DataProvider = ({ children }) => {
         // Try loading from static file
         try {
           // Use import.meta.env.BASE_URL to ensure correct path on GitHub Pages
-          const baseUrl = import.meta.env.BASE_URL || '/';
-          const dataUrl = `${baseUrl}data.json`.replace('//', '/'); // Avoid double slashes
+          // In DEV, force root path to avoid issues if BASE_URL is set differently
+          const baseUrl = import.meta.env.DEV ? '/' : (import.meta.env.BASE_URL || '/');
+          const dataUrl = `${baseUrl}data.json`.replace('//', '/');
           
           const response = await fetch(dataUrl);
           if (response.ok) {
