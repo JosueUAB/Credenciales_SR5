@@ -10,26 +10,49 @@ export const DataProvider = ({ children }) => {
 
   useEffect(() => {
     const loadData = async () => {
+      let localData = [];
       const storedData = localStorage.getItem('qr_app_data');
+      
       if (storedData) {
         try {
-          setEmployees(JSON.parse(storedData));
+          localData = JSON.parse(storedData);
         } catch (error) {
-          console.error('Error loading data', error);
-        }
-      } else {
-        // Try loading from static file (for GitHub Pages)
-        try {
-          const response = await fetch('./data.json');
-          if (response.ok) {
-            const staticData = await response.json();
-            setEmployees(staticData);
-          }
-        } catch (error) {
-          console.log('No static data found');
+          console.error('Error loading local data', error);
         }
       }
-      setLoading(false);
+
+      // If local data is empty, or if we want to ensure we have the latest static data
+      // Strategy: If local data is empty, definitely load static.
+      // If local data exists, we currently keep it (user might have added more).
+      // But for the "Public Verifier" on a fresh browser, localData is empty.
+      
+      if (localData.length > 0) {
+        setEmployees(localData);
+        setLoading(false);
+      } else {
+        // Try loading from static file
+        try {
+          // Use import.meta.env.BASE_URL to ensure correct path on GitHub Pages
+          const baseUrl = import.meta.env.BASE_URL || '/';
+          const dataUrl = `${baseUrl}data.json`.replace('//', '/'); // Avoid double slashes
+          
+          const response = await fetch(dataUrl);
+          if (response.ok) {
+            const staticData = await response.json();
+            if (Array.isArray(staticData) && staticData.length > 0) {
+              setEmployees(staticData);
+              // Optionally save this to local storage so it persists for this user
+              // localStorage.setItem('qr_app_data', JSON.stringify(staticData));
+            }
+          } else {
+            console.log('Static data not found or empty');
+          }
+        } catch (error) {
+          console.log('Error loading static data:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
     };
     loadData();
   }, []);
