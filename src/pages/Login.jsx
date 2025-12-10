@@ -24,7 +24,7 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md border border-gray-200">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Acceso Seguro</h1>
+          <h1 className="text-3xl font-bold text-gray-800">Acceso Seguro </h1>
           <p className="text-gray-500 mt-2">Ingrese sus credenciales para continuar</p>
           <div className="mt-4">
             <a href="#/consulta" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
